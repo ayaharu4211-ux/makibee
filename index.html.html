@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>株式会社エース専用 マキベエ計算ツール</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="マキベエ計算">
+<meta name="theme-color" content="#2b6fd8">
+<link rel="manifest" href='data:application/json,{"name":"マキベエ計算ツール","short_name":"マキベエ計算","start_url":".","display":"standalone","background_color":"%23eaf2fb","theme_color":"%232b6fd8"}'>
+<style>
+:root{
+  --blue:#2b6fd8; --blue2:#4a8ae8; --blue-deep:#1d5bbf;
+  --bg:#eaf2fb; --card:#ffffff; --line:#d7e3f2;
+  --ink:#1f2a3a; --sub:#5a6b82; --danger:#d9534f;
+  --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  padding-bottom:60px;
+}
+header{
+  background:linear-gradient(135deg,var(--blue) 0%,var(--blue2) 100%);
+  color:#fff; text-align:center; padding:calc(env(safe-area-inset-top) + 22px) 16px 16px;
+}
+header h1{margin:0; font-size:22px; font-weight:700;}
+header p{margin:6px 0 0; font-size:13px; opacity:.9;}
+.userbar{
+  display:flex; justify-content:center; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap;
+}
+.userbar .who{
+  background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.5);
+  border-radius:999px; padding:6px 14px; font-size:13px; font-weight:600;
+}
+.userbar button{
+  border:none; background:rgba(255,255,255,.92); color:var(--blue-deep);
+  border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer;
+}
+.nogas{
+  background:#fff3cd; color:#8a6d1a; font-size:13px; font-weight:600; text-align:center;
+  padding:9px 12px;
+}
+.tabs{
+  display:flex; background:#fff; position:sticky; top:0; z-index:20;
+  box-shadow:0 2px 8px rgba(30,60,120,.06);
+}
+.tabs button{
+  flex:1; padding:15px 0; border:none; background:#fff; font-size:15px; font-weight:600;
+  color:#8296ad; border-bottom:3px solid transparent; cursor:pointer;
+}
+.tabs button.active{color:var(--blue); border-bottom-color:var(--blue); background:#f4f8fd;}
+main{padding:14px; max-width:640px; margin:0 auto;}
+.card{
+  background:var(--card); border-radius:var(--radius); padding:18px 16px; margin-bottom:16px;
+  box-shadow:0 2px 10px rgba(30,60,120,.05);
+}
+.card h2{margin:0 0 4px; font-size:17px; color:var(--blue); font-weight:700;}
+.card h2 + hr{border:none; border-top:2px solid var(--blue); margin:8px 0 14px; opacity:.85;}
+label{display:block; font-size:14px; font-weight:600; margin:14px 0 6px;}
+label .req{color:#e04545; margin-left:2px;}
+input[type=text],input[type=number],input[type=date],input[type=password],select{
+  width:100%; padding:14px 12px; font-size:16px; border:1.5px solid var(--line);
+  border-radius:12px; background:#fbfdff; color:var(--ink); appearance:none;
+}
+input:focus,select:focus{outline:none; border-color:var(--blue2); background:#fff;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235a6b82' stroke-width='2'%3E%3Cpath d='M7 9l5-5 5 5M7 15l5 5 5-5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center;}
+.site-mgr{border:1.5px solid var(--line); border-radius:12px; padding:12px; background:#f8fbff; margin-top:6px;}
+.site-mgr .row{display:flex; gap:8px;}
+.site-mgr .row input{flex:1;}
+.btn{
+  border:none; border-radius:12px; padding:14px 18px; font-size:16px; font-weight:700;
+  cursor:pointer; color:#fff; background:var(--blue);
+}
+.btn:active{transform:scale(.98);}
+.btn-add{padding:0 22px; font-size:15px;}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+.chips:empty{display:none;}
+.chip{
+  display:inline-flex; align-items:center; gap:8px; border:1.5px solid var(--blue2);
+  color:var(--blue); background:#fff; border-radius:10px; padding:7px 10px; font-size:14px; font-weight:600; cursor:pointer;
+}
+.chip b{color:var(--danger); cursor:pointer; font-weight:700;}
+.items{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;}
+.items button{
+  padding:16px 6px; border:1.5px solid var(--line); background:#f8fbff; border-radius:14px;
+  font-size:16px; font-weight:700; color:var(--ink); cursor:pointer;
+}
+.items button.sel{
+  background:linear-gradient(135deg,var(--blue),var(--blue2)); color:#fff; border-color:var(--blue);
+  box-shadow:0 4px 12px rgba(43,111,216,.35);
+}
+.items button.full{grid-column:1/-1;}
+.result{
+  background:linear-gradient(135deg,#2f66c9,#4a8ae8); color:#fff; border-radius:16px;
+  padding:18px 20px; margin-top:20px;
+}
+.result .line{display:flex; justify-content:space-between; align-items:center; padding:8px 0;}
+.result .line + .line{border-top:1px solid rgba(255,255,255,.35);}
+.result .k{font-size:15px;}
+.result .v{font-size:30px; font-weight:700;}
+.save{width:100%; margin-top:12px; background:linear-gradient(135deg,var(--blue-deep),var(--blue2)); font-size:17px;}
+.subtabs{display:flex; gap:8px; flex-wrap:wrap; margin:4px 0 14px;}
+.subtabs button{
+  padding:10px 14px; border-radius:11px; border:1.5px solid var(--line); background:#f8fbff;
+  font-size:14px; font-weight:600; color:var(--sub); cursor:pointer;
+}
+.subtabs button.active{background:var(--blue); border-color:var(--blue); color:#fff;}
+.rec{
+  border:1.5px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:#fbfdff;
+}
+.rec .top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.rec .site{font-weight:700; font-size:15px;}
+.rec .who{
+  display:inline-block; background:#e8f1fd; color:var(--blue-deep); border-radius:7px;
+  padding:2px 8px; font-size:12px; font-weight:700; margin-left:6px; vertical-align:middle;
+}
+.rec .meta{font-size:13px; color:var(--sub); margin-top:3px; line-height:1.6;}
+.rec .nums{display:flex; gap:14px; margin-top:6px; font-size:15px; font-weight:700;}
+.rec .nums .amt{color:var(--blue-deep);}
+.del{
+  border:none; background:#fdecec; color:var(--danger); border-radius:9px;
+  padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer; flex-shrink:0;
+}
+.sumrow{
+  display:flex; justify-content:space-between; align-items:center; padding:12px 4px;
+  border-bottom:1px solid var(--line); font-size:15px;
+}
+.sumrow .k{font-weight:600;}
+.sumrow .v{text-align:right; font-weight:700;}
+.sumrow .v small{display:block; color:var(--sub); font-weight:600; font-size:12px;}
+.member-row{
+  width:100%; display:flex; justify-content:space-between; align-items:center;
+  border:1.5px solid var(--line); background:#fbfdff; border-radius:12px;
+  padding:14px 14px; margin-bottom:10px; cursor:pointer; font-family:inherit; text-align:left;
+}
+.member-row:active{border-color:var(--blue2); background:#f4f8fd;}
+.member-row .name{font-size:16px; font-weight:700;}
+.member-row .name small{display:block; color:var(--sub); font-size:12px; font-weight:600; margin-top:2px;}
+.member-row .val{text-align:right; font-weight:700; font-size:15px;}
+.member-row .val small{display:block; color:var(--sub); font-size:12px;}
+.member-row .arrow{color:var(--blue2); font-weight:700; margin-left:10px;}
+.daybox{margin-bottom:14px;}
+.daybox .dh{
+  background:#eef5fd; color:var(--blue-deep); font-weight:700; font-size:14px;
+  border-radius:9px; padding:8px 12px; margin-bottom:6px;
+}
+.total{
+  margin-top:12px; background:#eef5fd; border-radius:12px; padding:12px 14px;
+  display:flex; justify-content:space-between; font-weight:700; font-size:16px; color:var(--blue-deep);
+}
+.total.big{background:linear-gradient(135deg,#2f66c9,#4a8ae8); color:#fff; margin:0 0 14px;}
+.empty{color:var(--sub); font-size:14px; text-align:center; padding:18px 0;}
+.toolbar{display:flex; gap:8px; margin-top:14px;}
+.toolbar .btn{flex:1; font-size:14px; padding:12px;}
+.btn.ghost{background:#fff; color:var(--blue); border:1.5px solid var(--blue2);}
+.back{
+  width:100%; margin-bottom:14px; background:#fff; color:var(--blue);
+  border:1.5px solid var(--blue2); text-align:left; font-size:15px;
+}
+.toast{
+  position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(80px);
+  background:#1f2a3a; color:#fff; padding:12px 20px; border-radius:12px; font-size:14px;
+  opacity:0; transition:all .25s; z-index:99; pointer-events:none; white-space:nowrap;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.hidden{display:none !important;}
+
+/* ---- ログイン画面 ---- */
+#loginScreen{
+  position:fixed; inset:0; z-index:50; background:var(--bg);
+  display:flex; flex-direction:column; overflow-y:auto;
+}
+#loginScreen .lg-head{
+  background:linear-gradient(135deg,var(--blue),var(--blue2)); color:#fff; text-align:center;
+  padding:calc(env(safe-area-inset-top) + 46px) 16px 40px;
+  border-radius:0 0 28px 28px; flex-shrink:0;
+}
+#loginScreen .lg-head h1{margin:0; font-size:24px;}
+#loginScreen .lg-head p{margin:8px 0 0; font-size:13px; opacity:.9;}
+.lg-body{padding:26px 20px; max-width:480px; margin:0 auto; width:100%;}
+.lg-body h3{font-size:16px; margin:0 0 14px; text-align:center; color:var(--sub); font-weight:600;}
+.role-btn{
+  width:100%; display:block; text-align:left;
+  background:#fff; border:1.5px solid var(--line); border-radius:16px;
+  padding:18px 16px; margin-bottom:14px; cursor:pointer; font-family:inherit;
+}
+.role-btn .t{font-size:17px; font-weight:700; display:block;}
+.role-btn .d{font-size:13px; color:var(--sub); margin-top:4px; display:block;}
+.role-btn:active{border-color:var(--blue2); background:#f4f8fd;}
+</style>
+</head>
+<body>
+
+<!-- ============ ログイン ============ -->
+<div id="loginScreen">
+  <div class="lg-head">
+    <p style="margin:0 0 6px; font-size:14px; opacity:.9;">株式会社エース専用</p>
+    <h1>マキベエ計算ツール</h1>
+  </div>
+
+  <div class="lg-body" id="roleSelect">
+    <h3>利用する立場を選んでください</h3>
+    <button class="role-btn" onclick="showNameEntry()">
+      <span class="t">従業員としてログイン</span>
+      <span class="d">名前を入力して計算・記録を行います</span>
+    </button>
+    <button class="role-btn" onclick="showAdminEntry()">
+      <span class="t">管理者としてログイン</span>
+      <span class="d">パスワードを入力してメンバーごとの集計を確認できます</span>
+    </button>
+  </div>
+
+  <div class="lg-body hidden" id="nameEntry">
+    <h3>お名前を入力してください</h3>
+    <input type="text" id="loginName" placeholder="例: 山田太郎" style="font-size:17px;">
+    <div class="chips" id="nameChips" style="margin-top:12px;"></div>
+    <button class="btn save" onclick="loginEmp()">ログイン</button>
+    <button class="btn ghost" style="width:100%; margin-top:10px;" onclick="backToRole()">戻る</button>
+  </div>
+
+  <div class="lg-body hidden" id="adminEntry">
+    <h3>管理者パスワードを入力してください</h3>
+    <input type="password" id="adminPass" inputmode="numeric" placeholder="パスワード" style="font-size:17px; text-align:center; letter-spacing:4px;">
+    <button class="btn save" onclick="loginAdmin()">ログイン</button>
+    <button class="btn ghost" style="width:100%; margin-top:10px;" onclick="backToRole()">戻る</button>
+  </div>
+</div>
+
+<header>
+  <p style="margin:0 0 6px; font-size:14px; opacity:.9;">株式会社エース専用</p>
+  <h1>マキベエ計算ツール</h1>
+  <div class="userbar">
+    <span class="who" id="whoLabel"></span>
+    <span class="who" id="netLabel">接続確認中</span>
+    <button onclick="logout()">ログアウト</button>
+  </div>
+</header>
+
+<div class="nogas hidden" id="nofbBanner">共有データベース未設定です（この端末のみに保存中）。ClaudeにFirebaseのconfigを渡して埋め込んでもらってください。</div>
+
+<div class="tabs">
+  <button id="tabM2" class="active" onclick="switchTab('m2')">m2計算</button>
+  <button id="tabWage" onclick="switchTab('wage')">日当計算</button>
+  <button id="tabAdmin" class="hidden" onclick="switchTab('admin')">メンバー集計</button>
+</div>
+
+<main>
+
+<!-- ============ m2計算 ============ -->
+<section id="pageM2">
+  <div class="card">
+    <h2>m2計算</h2><hr>
+
+    <label>日付<span class="req">*</span></label>
+    <input type="date" id="m2Date">
+
+    <label>タイトル（施工箇所など）</label>
+    <input type="text" id="m2Title" placeholder="例: 1階左側、外壁北面">
+
+    <label style="margin-top:18px;">現場管理</label>
+    <div class="site-mgr">
+      <div class="row">
+        <input type="text" id="newSite" placeholder="新しい現場名を入力">
+        <button class="btn btn-add" onclick="addSite()">追加</button>
+      </div>
+      <div class="chips" id="siteChips"></div>
+    </div>
+
+    <label>現場名<span class="req">*</span></label>
+    <select id="m2Site"></select>
+
+    <label>項目<span class="req">*</span></label>
+    <div class="items" id="itemBtns"></div>
+
+    <label>長さ (mm)<span class="req">*</span></label>
+    <input type="number" id="m2Len" inputmode="decimal" placeholder="例: 3000" oninput="calcM2()">
+
+    <label>幅 (mm)<span class="req">*</span></label>
+    <input type="number" id="m2Wid" inputmode="decimal" placeholder="例: 1500" oninput="calcM2()">
+
+    <label>枚数<span class="req">*</span></label>
+    <input type="number" id="m2Cnt" inputmode="decimal" placeholder="例: 10" oninput="calcM2()">
+
+    <label>単価 (円/m2)<span class="req">*</span></label>
+    <input type="number" id="m2Price" inputmode="decimal" placeholder="例: 5000" oninput="calcM2()">
+
+    <div class="result">
+      <div class="line"><span class="k">m2</span><span class="v" id="m2Out">0.000</span></div>
+      <div class="line"><span class="k">金額</span><span class="v" id="m2Amt">¥0</span></div>
+    </div>
+    <button class="btn save" onclick="saveM2()">保存</button>
+  </div>
+
+  <div class="card">
+    <h2>履歴・集計</h2><hr>
+    <div class="subtabs">
+      <button class="active" data-v="list" onclick="setView(this)">履歴</button>
+      <button data-v="day" onclick="setView(this)">日別</button>
+      <button data-v="month" onclick="setView(this)">月別</button>
+      <button data-v="site" onclick="setView(this)">現場別</button>
+    </div>
+    <div id="m2History"></div>
+    <div class="toolbar">
+      <button class="btn ghost" onclick="exportCSV('m2')">CSV出力</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 日当計算 ============ -->
+<section id="pageWage" class="hidden">
+  <div class="card">
+    <h2>日当計算</h2><hr>
+
+    <label>日付<span class="req">*</span></label>
+    <input type="date" id="wDate">
+
+    <label>現場名<span class="req">*</span></label>
+    <select id="wSite"></select>
+
+    <label>作業内容・メモ</label>
+    <input type="text" id="wMemo" placeholder="例: 常用作業、片付け">
+
+    <label>人数<span class="req">*</span></label>
+    <input type="number" id="wCnt" inputmode="decimal" placeholder="例: 3" oninput="calcWage()">
+
+    <label>日当 (円/人)<span class="req">*</span></label>
+    <input type="number" id="wPrice" inputmode="decimal" placeholder="例: 20000" oninput="calcWage()">
+
+    <div class="result">
+      <div class="line"><span class="k">金額</span><span class="v" id="wAmt">¥0</span></div>
+    </div>
+    <button class="btn save" onclick="saveWage()">保存</button>
+  </div>
+
+  <div class="card">
+    <h2>履歴・集計</h2><hr>
+    <div class="subtabs">
+      <button class="active" data-v="list" onclick="setWView(this)">履歴</button>
+      <button data-v="day" onclick="setWView(this)">日別</button>
+      <button data-v="month" onclick="setWView(this)">月別</button>
+      <button data-v="site" onclick="setWView(this)">現場別</button>
+    </div>
+    <div id="wHistory"></div>
+    <div class="toolbar">
+      <button class="btn ghost" onclick="exportCSV('wage')">CSV出力</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 管理者: メンバー集計 ============ -->
+<section id="pageAdmin" class="hidden">
+  <div class="card">
+    <h2>メンバー別集計</h2><hr>
+
+    <div class="subtabs">
+      <button class="active" data-k="m2" onclick="setAdminKind(this)">m2計算</button>
+      <button data-k="wage" onclick="setAdminKind(this)">日当計算</button>
+    </div>
+
+    <label>対象月</label>
+    <select id="adminMonth" onchange="adminMonthChanged()"></select>
+
+    <div id="adminBody" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ============================================================
+   ★ 設定 ★
+   FIREBASE_CONFIG: Firebaseコンソールで発行された firebaseConfig の
+   中身を下の { } の中に貼り付けてください。
+   例:
+   const FIREBASE_CONFIG = {
+     apiKey: "AIza....",
+     authDomain: "xxx.firebaseapp.com",
+     projectId: "xxx",
+     storageBucket: "xxx.appspot.com",
+     messagingSenderId: "1234567890",
+     appId: "1:1234567890:web:abcdef"
+   };
+   ADMIN_PASS: 管理者ログインのパスワード。
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCB-zOzIs7J5aMFKFreZw8Q4-FwZqyLsCE",
+  authDomain: "makibe.firebaseapp.com",
+  projectId: "makibe",
+  storageBucket: "makibe.firebasestorage.app",
+  messagingSenderId: "432536064897",
+  appId: "1:432536064897:web:8c8f7ad825ec9763800e80"
+};
+const ADMIN_PASS = "0104";
+
+const ITEMS = ["20mm","40mm","65mm","高密度25mm","高密度40mm","スリーブ","火打・横補剛","常用","その他"];
+const LS = { sites:"mkb_sites", m2:"mkb_m2", wage:"mkb_wage", user:"mkb_user", names:"mkb_names", mig:"mkb_mig1", fbmig:"mkb_fbmig" };
+
+let sites = load(LS.sites, []);
+let recs  = load(LS.m2, []);
+let wages = load(LS.wage, []);
+let names = load(LS.names, []);
+let user  = load(LS.user, null);
+let selItem = null;
+let m2View = "list", wView = "list";
+let adminKind = "m2";
+let adminMember = null;
+
+if(!localStorage.getItem(LS.mig)){
+  sites = sites.filter(s => s !== "白井DC");
+  save(LS.sites, sites);
+  localStorage.setItem(LS.mig, "1");
+}
+
+function load(k, def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }
+function save(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+function yen(n){ return "¥" + Math.round(n).toLocaleString("ja-JP"); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove("show"), 2000);
+}
+function today(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function newDocId(id){ return String(id) + "_" + Math.random().toString(36).slice(2,7); }
+
+/* ---------- Firebase 接続 ---------- */
+const fbConfigured = !!FIREBASE_CONFIG.apiKey;
+let db = null, F = null;
+
+async function initFirebase(){
+  if(!fbConfigured){
+    document.getElementById("netLabel").textContent = "共有未設定";
+    document.getElementById("nofbBanner").classList.remove("hidden");
+    return;
+  }
+  try{
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    F = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const app = initializeApp(FIREBASE_CONFIG);
+    try{
+      db = F.initializeFirestore(app, { localCache: F.persistentLocalCache() });
+    }catch(e){
+      db = F.getFirestore(app);
+    }
+    document.getElementById("netLabel").textContent = "共有DB接続中";
+
+    /* リアルタイム同期: 誰かが保存すると全員の画面に自動反映 */
+    F.onSnapshot(F.collection(db, "m2"), snap => {
+      recs = snap.docs.map(d => ({ ...d.data(), _doc: d.id })).sort((a,b)=>b.id-a.id);
+      renderM2(); refreshAdmin();
+    }, err => netError(err));
+    F.onSnapshot(F.collection(db, "wage"), snap => {
+      wages = snap.docs.map(d => ({ ...d.data(), _doc: d.id })).sort((a,b)=>b.id-a.id);
+      renderWage(); refreshAdmin();
+    }, err => netError(err));
+    F.onSnapshot(F.collection(db, "sites"), snap => {
+      sites = snap.docs.map(d => d.data().name).filter(Boolean);
+      renderSites();
+    }, err => netError(err));
+
+    offerLocalUpload();
+  }catch(e){
+    document.getElementById("netLabel").textContent = "接続エラー";
+    toast("共有DBに接続できません(この端末のみに保存します)");
+  }
+}
+function netError(err){
+  console.error(err);
+  document.getElementById("netLabel").textContent = "接続エラー";
+}
+function refreshAdmin(){
+  if(user && user.role === "admin" && !document.getElementById("pageAdmin").classList.contains("hidden")){
+    renderAdminMonths();
+  }
+}
+/* 旧バージョンでこの端末に保存されたデータを共有DBへ引っ越し(1回だけ) */
+async function offerLocalUpload(){
+  if(localStorage.getItem(LS.fbmig)) return;
+  const localM2 = load(LS.m2, []), localW = load(LS.wage, []), localS = load(LS.sites, []);
+  const n = localM2.length + localW.length;
+  localStorage.setItem(LS.fbmig, "1");
+  if(!n && !localS.length) return;
+  if(!confirm("この端末に保存されている記録 " + n + " 件と現場リストを、共有データベースにアップロードしますか？")) return;
+  try{
+    for(const r of localM2){ const {_doc, ...d} = r; await F.setDoc(F.doc(db, "m2", newDocId(r.id)), d); }
+    for(const r of localW){ const {_doc, ...d} = r; await F.setDoc(F.doc(db, "wage", newDocId(r.id)), d); }
+    for(const s of localS){ await F.setDoc(F.doc(db, "sites", s), { name: s }); }
+    toast("アップロードしました");
+  }catch(e){ toast("アップロードに失敗しました"); }
+}
+
+/* ---------- 保存・削除(共有DB or この端末) ---------- */
+function dbAddRec(col, rec){
+  if(db){
+    const { _doc, ...d } = rec;
+    F.setDoc(F.doc(db, col, rec._doc), d).catch(()=>toast("送信待ち(通信が戻ると自動同期)"));
+  } else {
+    if(col === "m2"){ recs.unshift(rec); save(LS.m2, recs); renderM2(); }
+    else { wages.unshift(rec); save(LS.wage, wages); renderWage(); }
+  }
+}
+function dbDelRec(col, rec){
+  if(db){
+    F.deleteDoc(F.doc(db, col, rec._doc)).catch(()=>toast("削除は通信が戻ると反映されます"));
+  } else {
+    if(col === "m2"){ recs = recs.filter(r => r.id !== rec.id); save(LS.m2, recs); renderM2(); }
+    else { wages = wages.filter(r => r.id !== rec.id); save(LS.wage, wages); renderWage(); }
+  }
+}
+function dbAddSite(name){
+  if(db){ F.setDoc(F.doc(db, "sites", name), { name }).catch(()=>{}); }
+  else { sites.push(name); save(LS.sites, sites); renderSites(); }
+}
+function dbDelSite(name){
+  if(db){ F.deleteDoc(F.doc(db, "sites", name)).catch(()=>{}); }
+  else { sites = sites.filter(s => s !== name); save(LS.sites, sites); renderSites(); }
+}
+
+/* ---------- ログイン ---------- */
+function showNameEntry(){
+  document.getElementById("roleSelect").classList.add("hidden");
+  document.getElementById("nameEntry").classList.remove("hidden");
+  document.getElementById("nameChips").innerHTML =
+    names.map(n => `<span class="chip" data-n="${esc(n)}">${esc(n)}</span>`).join("");
+  document.querySelectorAll("#nameChips .chip").forEach(c =>
+    c.addEventListener("click", ()=>{ document.getElementById("loginName").value = c.dataset.n; }));
+  setTimeout(()=>document.getElementById("loginName").focus(), 100);
+}
+function showAdminEntry(){
+  document.getElementById("roleSelect").classList.add("hidden");
+  document.getElementById("adminEntry").classList.remove("hidden");
+  document.getElementById("adminPass").value = "";
+  setTimeout(()=>document.getElementById("adminPass").focus(), 100);
+}
+function backToRole(){
+  document.getElementById("nameEntry").classList.add("hidden");
+  document.getElementById("adminEntry").classList.add("hidden");
+  document.getElementById("roleSelect").classList.remove("hidden");
+}
+function loginEmp(){
+  const name = document.getElementById("loginName").value.trim();
+  if(!name) return toast("名前を入力してください");
+  if(!names.includes(name)){ names.unshift(name); names = names.slice(0,20); save(LS.names, names); }
+  user = { role:"emp", name };
+  save(LS.user, user); enterApp();
+}
+function loginAdmin(){
+  const pass = document.getElementById("adminPass").value;
+  if(pass !== ADMIN_PASS) return toast("パスワードが違います");
+  user = { role:"admin", name:"管理者" };
+  save(LS.user, user); enterApp();
+}
+function logout(){
+  user = null; localStorage.removeItem(LS.user);
+  document.getElementById("loginScreen").classList.remove("hidden");
+  backToRole();
+  document.getElementById("loginName").value = "";
+}
+function enterApp(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("whoLabel").textContent =
+    user.role === "admin" ? "管理者" : user.name;
+  document.getElementById("tabAdmin").classList.toggle("hidden", user.role !== "admin");
+  if(user.role === "admin"){ switchTab("admin"); } else { switchTab("m2"); }
+  renderAll();
+}
+
+/* ---------- タブ ---------- */
+function switchTab(t){
+  document.getElementById("tabM2").classList.toggle("active", t==="m2");
+  document.getElementById("tabWage").classList.toggle("active", t==="wage");
+  document.getElementById("tabAdmin").classList.toggle("active", t==="admin");
+  document.getElementById("pageM2").classList.toggle("hidden", t!=="m2");
+  document.getElementById("pageWage").classList.toggle("hidden", t!=="wage");
+  document.getElementById("pageAdmin").classList.toggle("hidden", t!=="admin");
+  if(t==="admin") renderAdminMonths();
+  window.scrollTo(0,0);
+}
+
+/* ---------- 現場管理 ---------- */
+function addSite(){
+  const inp = document.getElementById("newSite");
+  const name = inp.value.trim();
+  if(!name) return toast("現場名を入力してください");
+  if(sites.includes(name)) return toast("同じ現場名があります");
+  inp.value = "";
+  if(!db){ dbAddSite(name); } else { dbAddSite(name); sites.push(name); renderSites(); }
+  document.getElementById("m2Site").value = name;
+  document.getElementById("wSite").value = name;
+  toast("現場を追加しました");
+}
+function delSite(name){
+  if(!confirm("「" + name + "」を現場リストから削除しますか？\n（保存済みの履歴データは残ります）")) return;
+  if(db){ sites = sites.filter(s => s !== name); renderSites(); }
+  dbDelSite(name);
+}
+function renderSites(){
+  const chips = document.getElementById("siteChips");
+  chips.innerHTML = sites.map(s => `<span class="chip">${esc(s)}<b data-n="${esc(s)}">✕</b></span>`).join("");
+  chips.querySelectorAll("b").forEach(b => b.addEventListener("click", ()=>delSite(b.dataset.n)));
+  for(const id of ["m2Site","wSite"]){
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = sites.length
+      ? sites.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("")
+      : `<option value="">（上の現場管理から追加してください）</option>`;
+    if(sites.includes(cur)) sel.value = cur;
+  }
+}
+
+/* ---------- 項目ボタン ---------- */
+function renderItems(){
+  const wrap = document.getElementById("itemBtns");
+  wrap.innerHTML = ITEMS.map((it,i) =>
+    `<button class="${it===selItem?"sel":""} ${i===ITEMS.length-1?"full":""}" data-it="${it}">${it}</button>`
+  ).join("");
+  wrap.querySelectorAll("button").forEach(b => b.addEventListener("click", ()=>{ selItem = b.dataset.it; renderItems(); }));
+}
+
+/* ---------- m2計算 ---------- */
+function calcM2(){
+  const L = parseFloat(document.getElementById("m2Len").value) || 0;
+  const W = parseFloat(document.getElementById("m2Wid").value) || 0;
+  const C = parseFloat(document.getElementById("m2Cnt").value) || 0;
+  const P = parseFloat(document.getElementById("m2Price").value) || 0;
+  const m2 = L * W / 1e6 * C;
+  document.getElementById("m2Out").textContent = m2.toFixed(3);
+  document.getElementById("m2Amt").textContent = yen(m2 * P);
+  return { L, W, C, P, m2 };
+}
+function saveM2(){
+  const { L, W, C, P, m2 } = calcM2();
+  const date = document.getElementById("m2Date").value;
+  const site = document.getElementById("m2Site").value;
+  if(!date) return toast("日付を入力してください");
+  if(!site) return toast("現場を追加・選択してください");
+  if(!selItem) return toast("項目を選択してください");
+  if(!L || !W || !C || !P) return toast("長さ・幅・枚数・単価を入力してください");
+  const id = Date.now();
+  const rec = {
+    id, _doc: newDocId(id), user: user.name, date, site, item: selItem,
+    title: document.getElementById("m2Title").value.trim(),
+    L, W, C, P, m2: +m2.toFixed(3), amt: Math.round(m2 * P)
+  };
+  dbAddRec("m2", rec);
+  toast("保存しました");
+  document.getElementById("m2Len").value = "";
+  document.getElementById("m2Wid").value = "";
+  document.getElementById("m2Cnt").value = "";
+  calcM2();
+}
+function delM2(docKey){
+  const rec = recs.find(r => String(r._doc || r.id) === String(docKey));
+  if(!rec) return;
+  if(!confirm("この記録を削除しますか？")) return;
+  dbDelRec("m2", rec);
+}
+function setView(btn){
+  m2View = btn.dataset.v;
+  btn.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("active", b===btn));
+  renderM2();
+}
+function m2RecHTML(r, withUser){
+  return `
+    <div class="rec">
+      <div class="top">
+        <div>
+          <div class="site">${esc(r.site)} <span style="color:var(--blue);font-size:13px;">[${esc(r.item)}]</span>${withUser ? `<span class="who">${esc(r.user || "-")}</span>` : ""}</div>
+          <div class="meta">${esc(r.date)}${r.title ? " ｜ " + esc(r.title) : ""}<br>
+          ${(+r.L).toLocaleString()} × ${(+r.W).toLocaleString()} mm × ${r.C}枚 ｜ 単価 ${yen(r.P)}/m2</div>
+          <div class="nums"><span>${(+r.m2).toFixed(3)} m2</span><span class="amt">${yen(r.amt)}</span></div>
+        </div>
+        ${withUser ? `<button class="del" data-k="m2" data-doc="${esc(r._doc || r.id)}">削除</button>` : ""}
+      </div>
+    </div>`;
+}
+function wageRecHTML(r, withUser){
+  return `
+    <div class="rec">
+      <div class="top">
+        <div>
+          <div class="site">${esc(r.site)}${withUser ? `<span class="who">${esc(r.user || "-")}</span>` : ""}</div>
+          <div class="meta">${esc(r.date)}${r.memo ? " ｜ " + esc(r.memo) : ""}<br>${r.C}人 × ${yen(r.P)}</div>
+          <div class="nums"><span class="amt">${yen(r.amt)}</span></div>
+        </div>
+        ${withUser ? `<button class="del" data-k="wage" data-doc="${esc(r._doc || r.id)}">削除</button>` : ""}
+      </div>
+    </div>`;
+}
+function bindDelButtons(root){
+  root.querySelectorAll(".del").forEach(b => b.addEventListener("click", ()=>{
+    if(b.dataset.k === "m2") delM2(b.dataset.doc); else delWage(b.dataset.doc);
+  }));
+}
+function renderM2(){
+  const el = document.getElementById("m2History");
+  if(!recs.length){ el.innerHTML = `<div class="empty">まだ記録がありません。保存するとここに表示されます。</div>`; return; }
+  if(m2View === "list"){
+    el.innerHTML = recs.map(r => m2RecHTML(r, true)).join("") + totalBar(recs);
+    bindDelButtons(el);
+  } else {
+    el.innerHTML = groupHTML(recs, m2View, true);
+  }
+}
+
+/* ---------- 日当計算 ---------- */
+function calcWage(){
+  const C = parseFloat(document.getElementById("wCnt").value) || 0;
+  const P = parseFloat(document.getElementById("wPrice").value) || 0;
+  const amt = C * P;
+  document.getElementById("wAmt").textContent = yen(amt);
+  return { C, P, amt };
+}
+function saveWage(){
+  const { C, P, amt } = calcWage();
+  const date = document.getElementById("wDate").value;
+  const site = document.getElementById("wSite").value;
+  if(!date) return toast("日付を入力してください");
+  if(!site) return toast("現場を追加・選択してください");
+  if(!C || !P) return toast("人数・日当を入力してください");
+  const id = Date.now();
+  const rec = {
+    id, _doc: newDocId(id), user: user.name, date, site,
+    memo: document.getElementById("wMemo").value.trim(),
+    C, P, amt: Math.round(amt)
+  };
+  dbAddRec("wage", rec);
+  toast("保存しました");
+  document.getElementById("wCnt").value = ""; calcWage();
+}
+function delWage(docKey){
+  const rec = wages.find(r => String(r._doc || r.id) === String(docKey));
+  if(!rec) return;
+  if(!confirm("この記録を削除しますか？")) return;
+  dbDelRec("wage", rec);
+}
+function setWView(btn){
+  wView = btn.dataset.v;
+  btn.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("active", b===btn));
+  renderWage();
+}
+function renderWage(){
+  const el = document.getElementById("wHistory");
+  if(!wages.length){ el.innerHTML = `<div class="empty">まだ記録がありません。保存するとここに表示されます。</div>`; return; }
+  if(wView === "list"){
+    el.innerHTML = wages.map(r => wageRecHTML(r, true)).join("") + totalBar(wages);
+    bindDelButtons(el);
+  } else {
+    el.innerHTML = groupHTML(wages, wView, false);
+  }
+}
+
+/* ---------- 集計共通 ---------- */
+function groupHTML(list, mode, hasM2){
+  const key = r => mode==="day" ? r.date : mode==="month" ? String(r.date).slice(0,7) : r.site;
+  const g = {};
+  for(const r of list){
+    const k = key(r);
+    g[k] ??= { m2:0, amt:0, n:0 };
+    g[k].m2 += +r.m2 || 0; g[k].amt += +r.amt; g[k].n++;
+  }
+  const keys = Object.keys(g).sort().reverse();
+  const rows = keys.map(k => `
+    <div class="sumrow">
+      <span class="k">${esc(k)}<small style="color:var(--sub);font-weight:500;"> (${g[k].n}件)</small></span>
+      <span class="v">${yen(g[k].amt)}${hasM2 ? `<small>${g[k].m2.toFixed(3)} m2</small>` : ""}</span>
+    </div>`).join("");
+  return rows + totalBar(list);
+}
+function totalBar(list, cls){
+  const m2 = list.reduce((s,r)=>s+(+r.m2||0),0);
+  const amt = list.reduce((s,r)=>s+(+r.amt||0),0);
+  const hasM2 = list.some(r => r.m2 !== undefined);
+  return `<div class="total ${cls||""}"><span>合計${hasM2 ? " " + m2.toFixed(3) + " m2" : ""}</span><span>${yen(amt)}</span></div>`;
+}
+
+/* ---------- 管理者: メンバー集計 ---------- */
+function setAdminKind(btn){
+  adminKind = btn.dataset.k;
+  adminMember = null;
+  btn.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("active", b===btn));
+  renderAdminMonths();
+}
+function adminMonthChanged(){ adminMember = null; renderAdmin(); }
+function renderAdminMonths(){
+  const list = adminKind==="m2" ? recs : wages;
+  const sel = document.getElementById("adminMonth");
+  const months = [...new Set(list.map(r => String(r.date).slice(0,7)))].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = months.length
+    ? months.map(m => `<option value="${m}">${m.replace("-","年")}月</option>`).join("")
+    : `<option value="">（データなし）</option>`;
+  if(months.includes(cur)) sel.value = cur;
+  renderAdmin();
+}
+function openMember(u){ adminMember = u; renderAdmin(); window.scrollTo(0,0); }
+function closeMember(){ adminMember = null; renderAdmin(); }
+function renderAdmin(){
+  const el = document.getElementById("adminBody");
+  const list = adminKind==="m2" ? recs : wages;
+  const month = document.getElementById("adminMonth").value;
+  const hasM2 = adminKind==="m2";
+  if(!month){ el.innerHTML = `<div class="empty">まだ記録がありません。</div>`; return; }
+  const inMonth = list.filter(r => String(r.date).slice(0,7) === month);
+  if(!inMonth.length){ el.innerHTML = `<div class="empty">この月の記録はありません。</div>`; adminMember = null; return; }
+
+  if(adminMember){
+    const mine = inMonth.filter(r => (r.user || "（名前なし）") === adminMember);
+    let html = `<button class="btn back" id="backBtn">← メンバー一覧に戻る</button>
+      <div style="font-size:18px; font-weight:700; margin-bottom:10px;">${esc(adminMember)} さん（${esc(month.replace("-","年"))}月）</div>`;
+    if(!mine.length){
+      html += `<div class="empty">この月の記録はありません。</div>`;
+    } else {
+      html += totalBar(mine, "big");
+      const byDay = {};
+      for(const r of mine){ (byDay[r.date] ??= []).push(r); }
+      const days = Object.keys(byDay).sort().reverse();
+      html += days.map(d => {
+        const dayList = byDay[d];
+        const dayM2 = dayList.reduce((s,r)=>s+(+r.m2||0),0);
+        const dayAmt = dayList.reduce((s,r)=>s+(+r.amt||0),0);
+        return `
+        <div class="daybox">
+          <div class="dh">${esc(d)} ｜ ${hasM2 ? dayM2.toFixed(3) + " m2 ｜ " : ""}${yen(dayAmt)}</div>
+          ${dayList.map(r => hasM2 ? m2RecHTML(r, false) : wageRecHTML(r, false)).join("")}
+        </div>`;
+      }).join("");
+    }
+    el.innerHTML = html;
+    document.getElementById("backBtn").addEventListener("click", closeMember);
+    return;
+  }
+
+  const g = {};
+  for(const r of inMonth){
+    const u = r.user || "（名前なし）";
+    g[u] ??= { m2:0, amt:0, n:0 };
+    g[u].m2 += +r.m2 || 0; g[u].amt += +r.amt; g[u].n++;
+  }
+  const users = Object.keys(g).sort((a,b)=>g[b].m2 - g[a].m2 || g[b].amt - g[a].amt);
+  el.innerHTML =
+    `<div style="font-size:13px; color:var(--sub); margin-bottom:10px;">名前をタップすると、その人の月合計と日別の履歴が見られます。</div>` +
+    users.map(u => `
+      <button class="member-row" data-u="${esc(u)}">
+        <span class="name">${esc(u)}<small>${g[u].n}件</small></span>
+        <span style="display:flex; align-items:center;">
+          <span class="val">${hasM2 ? g[u].m2.toFixed(3) + " m2" : yen(g[u].amt)}<small>${hasM2 ? yen(g[u].amt) : ""}</small></span>
+          <span class="arrow">›</span>
+        </span>
+      </button>`).join("") + totalBar(inMonth);
+  el.querySelectorAll(".member-row").forEach(b => b.addEventListener("click", ()=>openMember(b.dataset.u)));
+}
+
+/* ---------- CSV出力 ---------- */
+function exportCSV(kind){
+  let rows, name;
+  if(kind==="m2"){
+    if(!recs.length) return toast("出力する記録がありません");
+    rows = [["日付","入力者","現場名","項目","タイトル","長さ(mm)","幅(mm)","枚数","単価(円/m2)","m2","金額(円)"]]
+      .concat(recs.map(r => [r.date, r.user, r.site, r.item, r.title, r.L, r.W, r.C, r.P, (+r.m2).toFixed(3), r.amt]));
+    name = "m2計算_";
+  } else {
+    if(!wages.length) return toast("出力する記録がありません");
+    rows = [["日付","入力者","現場名","メモ","人数","日当(円/人)","金額(円)"]]
+      .concat(wages.map(r => [r.date, r.user, r.site, r.memo, r.C, r.P, r.amt]));
+    name = "日当計算_";
+  }
+  const csv = "\uFEFF" + rows.map(r => r.map(c => `"${String(c ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = name + today() + ".csv"; a.click();
+}
+
+/* ---------- 初期化 ---------- */
+function renderAll(){ renderSites(); renderItems(); renderM2(); renderWage(); if(user && user.role==="admin") renderAdminMonths(); }
+Object.assign(window, {
+  switchTab, addSite, calcM2, saveM2, setView, calcWage, saveWage, setWView,
+  setAdminKind, adminMonthChanged, showNameEntry, showAdminEntry, backToRole,
+  loginEmp, loginAdmin, logout, exportCSV
+});
+document.getElementById("m2Date").value = today();
+document.getElementById("wDate").value = today();
+if(user){ enterApp(); } else { renderAll(); }
+document.getElementById("loginName").addEventListener("keydown", e => { if(e.key==="Enter") loginEmp(); });
+document.getElementById("adminPass").addEventListener("keydown", e => { if(e.key==="Enter") loginAdmin(); });
+initFirebase();
+</script>
+</body>
+</html>
